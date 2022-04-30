@@ -1,1 +1,1 @@
-web: gunicorn dysplasia.app:app
+web: gunicorn dysplasia.main:app
