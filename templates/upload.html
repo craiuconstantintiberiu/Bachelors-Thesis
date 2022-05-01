@@ -1,6 +1,6 @@
 <!doctype html>
 <title>Dysplasia Classifier</title>
-<h2>Select a file to upload</h2>
+<h2>Select a radiograph to upload</h2>
 <p>
 	{% with messages = get_flashed_messages() %}
 	  {% if messages %}
@@ -12,11 +12,6 @@
 	  {% endif %}
 	{% endwith %}
 </p>
-{% if filename %}
-	<div>
-		<img src="{{ url_for('display_image', filename=filename) }}">
-	</div>
-{% endif %}
 
 {% if prediction_filename %}
 	<div>
