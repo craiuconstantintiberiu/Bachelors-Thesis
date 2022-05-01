@@ -65,6 +65,7 @@ def predict_image(image, model, new_image_name):
 
     # plt.scatter(prediction[0::2], prediction[1::2], marker='x', s=20)
     plt.savefig('./static/predictions/' + new_image_name + ".jpg")
+    plt.close()
     plt.show()
 
 def angle_between(a,b,c):

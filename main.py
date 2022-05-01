@@ -10,8 +10,7 @@ from MLPart import load_own_model, predict_image
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-my_model = 2
-#my_model = load_own_model("higherResolutionLatest")
+my_model = load_own_model("higherResolutionLatest")
 
 
 def allowed_file(filename):
@@ -60,4 +59,4 @@ def display_prediction_image(prediction_filename):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
