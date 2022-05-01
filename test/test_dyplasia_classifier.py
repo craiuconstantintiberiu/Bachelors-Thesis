@@ -1,5 +1,5 @@
 import unittest
-from dysplasia.dysplasia_classifier import classify_based_on_angle, Dysplasia
+from dysplasia_classifier import classify_based_on_angle, Dysplasia
 
 
 class MyTestCase(unittest.TestCase):
