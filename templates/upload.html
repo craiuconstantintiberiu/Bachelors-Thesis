@@ -1,4 +1,5 @@
 <!doctype html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <title>Dysplasia Classifier</title>
 <h2>Select a radiograph to upload</h2>
 <p>
@@ -17,7 +18,16 @@
 	<div>
 		<img src="{{ url_for('display_prediction_image', prediction_filename='../static/predictions/'+prediction_filename) }}">
 	</div>
+    <div>
+        <p>
+            The Norberg Angle for the left hip is {{ left_hip_norberg }}, resulting in a class {{ left_hip_classification }} classification.
+        </p>
+        <p>
+            The Norberg Angle for the right hip is {{ right_hip_norberg }}, resulting in a class {{ right_hip_classification }} classification.
+        </p>
+    </div>
 {% endif %}
+
 <form method="post" action="/" enctype="multipart/form-data">
     <dl>
 		<p>
