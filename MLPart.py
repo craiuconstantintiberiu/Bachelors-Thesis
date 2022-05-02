@@ -1,16 +1,9 @@
-import os
-
-import keras.models
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import cv2
-from math import sin, cos, pi
+import keras.models
+import matplotlib.pyplot as plt
+import numpy as np
+
 from AngleAnnotation import AngleAnnotation
-import tensorflow
-from keras.applications.resnet import ResNet50
-from keras.layers import Conv2D, LeakyReLU, GlobalAveragePooling2D, Dropout, Dense
-from keras.models import Sequential
 
 
 def load_own_model(directory):
@@ -29,70 +22,78 @@ def resize_image(img):
     return np.reshape(resize, (512, 512, 1))
 
 
-def predict_image(image, model, new_image_name):
-    image_for_model = [convertImage(image)]
-    image_for_model = np.array(image_for_model) / 255.
-    prediction = model.predict(image_for_model)[0]
-    # resized_and_converted_image = convertImage(image)
-    # plt.imshow(resized_and_converted_image, cmap='gray')
-    fig,axis=plt.subplots()
-    plt.imshow(image)
+def save_image_and_retrieve_angles(image, model, new_image_name):
+    prediction = obtain_keyword_predictions(image, model)
     width, height = get_width_height_of_np_array(image)
-
-    print(prediction)
-    print(prediction[0::2])
-    print(prediction[1::2])
-
     x_values = prediction[0::2]
     y_values = prediction[1::2]
+    x_values_scaled, y_values_scaled = scale_x_and_y_values(height, width, x_values, y_values)
+    left_hip_angle, right_hip_angle = obtain_hip_angles(x_values_scaled, y_values_scaled)
+    create_and_save_radiograph_with_lines_and_arcs(image, left_hip_angle, new_image_name, right_hip_angle,
+                                                   x_values_scaled, y_values_scaled)
+    return left_hip_angle, right_hip_angle
 
+
+def create_and_save_radiograph_with_lines_and_arcs(image, left_hip_angle, new_image_name, right_hip_angle,
+                                                   x_values_scaled, y_values_scaled):
+    fig, axis = plt.subplots()
+    plt.imshow(image)
+    plot_lines_between_keypoints(x_values_scaled,y_values_scaled)
+    plot_hip_angle_arcs(axis, left_hip_angle, right_hip_angle, x_values_scaled, y_values_scaled)
+    plt.axis("off")
+    plt.savefig('./static/predictions/' + new_image_name + ".svg", bbox_inches='tight', pad_inches=0)
+    plt.close()
+    plt.show()
+
+
+def plot_hip_angle_arcs(axis, left_hip_angle, right_hip_angle, x_values_scaled, y_values_scaled):
+    intersection_point_1 = (x_values_scaled[1], y_values_scaled[1])
+    AngleAnnotation(intersection_point_1, (x_values_scaled[2], y_values_scaled[2]),
+                    (x_values_scaled[0], y_values_scaled[0]), ax=axis, size=20, text=str(left_hip_angle),
+                    textposition="inside",
+                    text_kw=dict(fontsize=3, color="blue"))
+    intersection_point_2 = (x_values_scaled[2], y_values_scaled[2])
+    AngleAnnotation(intersection_point_2, (x_values_scaled[3], y_values_scaled[3]),
+                    (x_values_scaled[1], y_values_scaled[1]), ax=axis, size=20, text=str(right_hip_angle),
+                    textposition="inside",
+                    text_kw=dict(fontsize=3, color="blue"))
+
+
+def obtain_hip_angles(x_values_scaled, y_values_scaled):
+    angle1 = get_angle(np.array([x_values_scaled[0], y_values_scaled[0]]),
+                       np.array([x_values_scaled[1], y_values_scaled[1]]),
+                       np.array([x_values_scaled[2], y_values_scaled[2]]))
+    angle2 = get_angle(np.array([x_values_scaled[1], y_values_scaled[1]]),
+                       np.array([x_values_scaled[2], y_values_scaled[2]]),
+                       np.array([x_values_scaled[3], y_values_scaled[3]]))
+    return round(angle1,2), round(angle2, 2)
+
+
+def plot_lines_between_keypoints(x_values_scaled, y_values_scaled):
+    first_line = [[x_values_scaled[0], x_values_scaled[1]], [y_values_scaled[0], y_values_scaled[1]]]
+    second_line = [[x_values_scaled[1], x_values_scaled[2]], [y_values_scaled[1], y_values_scaled[2]]]
+    third_line = [[x_values_scaled[2], x_values_scaled[3]], [y_values_scaled[2], y_values_scaled[3]]]
+    plt.plot(first_line[0], first_line[1], 'r-', linewidth=0.6)
+    plt.plot(second_line[0], second_line[1], 'r-', linewidth=0.6)
+    plt.plot(third_line[0], third_line[1], 'r-', linewidth=0.6)
+
+
+def scale_x_and_y_values(height, width, x_values, y_values):
     x_values_scaled = []
     y_values_scaled = []
-    print(x_values.shape)
     for idx in range(x_values.shape[0]):
         x_scaled, y_scaled = scale_points(width, height, x_values[idx], y_values[idx])
         x_values_scaled.append(x_scaled)
         y_values_scaled.append(y_scaled)
+    return x_values_scaled, y_values_scaled
 
-    print(x_values)
-    print(y_values)
-    print(x_values_scaled)
-    print(y_values_scaled)
 
-    first_line = [[x_values_scaled[0], x_values_scaled[1]], [y_values_scaled[0], y_values_scaled[1]]]
-    second_line = [[x_values_scaled[1], x_values_scaled[2]], [y_values_scaled[1], y_values_scaled[2]]]
-    third_line = [[x_values_scaled[2], x_values_scaled[3]], [y_values_scaled[2], y_values_scaled[3]]]
+def obtain_keyword_predictions(image, model):
+    image_for_model = [convertImage(image)]
+    image_for_model = np.array(image_for_model) / 255.
+    prediction = model.predict(image_for_model)[0]
+    return prediction
 
-    intersection_point_1=(x_values_scaled[1],y_values_scaled[1])
-    angle1=get_angle(np.array([x_values_scaled[0],y_values_scaled[0]]), np.array([x_values_scaled[1], y_values_scaled[1]]),np.array([x_values_scaled[2],y_values_scaled[2]]))
-    am1 = AngleAnnotation(intersection_point_1, (x_values_scaled[2], y_values_scaled[2]),(x_values_scaled[0],y_values_scaled[0]), ax=axis, size=20, text=str(angle1), textposition="inside",
-                          text_kw=dict(fontsize=3, xytext=(10, -5),color="blue"))
-
-    intersection_point_2=(x_values_scaled[2],y_values_scaled[2])
-    angle2=get_angle(np.array([x_values_scaled[1], y_values_scaled[1]]),np.array([x_values_scaled[2],y_values_scaled[2]]),np.array([x_values_scaled[3],y_values_scaled[3]]) )
-    am2 = AngleAnnotation(intersection_point_2,(x_values_scaled[3], y_values_scaled[3]), (x_values_scaled[1], y_values_scaled[1]), ax=axis, size=20, text=str(angle2), textposition="inside",
-                          text_kw=dict(fontsize=3, xytext=(10, -5),color="blue"))
-
-    plt.plot(first_line[0], first_line[1], 'r-', linewidth=0.6, marker='x')
-    plt.plot(second_line[0], second_line[1], 'r-', linewidth=0.6, marker='x')
-    plt.plot(third_line[0], third_line[1], 'r-', linewidth=0.6, marker='x')
-
-    left_acetabulum = np.array(x_values[0], y_values[0])
-    left_femoral = np.array(x_values[1], y_values[1])
-    right_femoral = np.array(x_values[2], y_values[2])
-    right_acetabulum = np.array(x_values[3], y_values[3])
-
-    # plt.plot(first_line[0][0], first_line[1][0], first_line[0][1], first_line[1][1], 'b-', marker='x')
-    # plt.plot(second_line[0][0], second_line[1][0], second_line[0][1], second_line[1][1], 'b-', marker='x')
-    # plt.plot(third_line[0][0], third_line[1][0], third_line[0][1], third_line[1][1], 'b-', marker='x')
-
-    # plt.scatter(prediction[0::2], prediction[1::2], marker='x', s=20)
-    plt.axis("off")
-
-    plt.savefig('./static/predictions/' + new_image_name + ".jpg")
-    plt.close()
-    plt.show()
-    return angle1, angle2
 
 def scale_points(image_width, image_height, point_x, point_y, processed_image_width=512, processed_image_height=512):
     """
@@ -111,27 +112,16 @@ def get_width_height_of_np_array(image):
     dimensions = image.shape
     return dimensions[1], dimensions[0]
 
-#
-# def plot_sample(image, keypoint, axis, title):
-#     image = image.reshape(512, 512)
-#     axis.imshow(image)
-#     axis.scatter(keypoint[0::2], keypoint[1::2], marker='x', s=20)
-#     plt.title(title)
-#
-#
-# model2 = keras.models.load_model("currentModel")
-# predict = model2.predict()
-# plot_sample(test_images[i], predict[i], axis, "Test prediction")
 
-def get_angle(p0, p1=np.array([0,0]), p2=None):
-    ''' compute angle (in degrees) for p0p1p2 corner
+def get_angle(p0, p1=np.array([0, 0]), p2=None):
+    """ compute angle (in degrees) for p0p1p2 corner
     Inputs:
         p0,p1,p2 - points in the form of [x,y]
-    '''
+    """
     if p2 is None:
         p2 = p1 + np.array([1, 0])
     v0 = np.array(p0) - np.array(p1)
     v1 = np.array(p2) - np.array(p1)
 
-    angle = np.math.atan2(np.linalg.det([v0,v1]),np.dot(v0,v1))
+    angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
     return np.degrees(angle)
