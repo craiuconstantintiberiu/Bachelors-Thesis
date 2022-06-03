@@ -1,10 +1,41 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from AngleAnnotation import AngleAnnotation
+from dysplasia_classification.models.ResNet50 import ResNet50
+from dysplasia_classification.models.UNet import UNet
 
-number_keypoints=4
-def save_image_and_retrieve_angles(image, new_image_name, prediction):
+def scale_points(image_width, image_height, point_x, point_y, processed_image_width=512, processed_image_height=512):
+    """
+    :param image_width: Width of initial resized_and_converted_image
+    :param image_height: Height of initial image
+    :param processed_image_width: Width of processed image, 512 currently
+    :param processed_image_height: Height of processed image, 512 currently
+    :param point_x: X coordinate of point
+    :param point_y: Y coordinate of point
+    :return: The corresponding (x,y) of the point if it were to be situated in the same place, but on the other image
+    """
+    return point_x * image_width / processed_image_width, point_y * image_height / processed_image_height
+
+
+def get_width_height_of_np_array(image):
+    dimensions = image.shape
+    return dimensions[1], dimensions[0]
+
+
+def get_angle(p0, p1=np.array([0, 0]), p2=None):
+    """ compute angle (in degrees) for p0p1p2 corner
+    Inputs:
+        p0,p1,p2 - points in the form of [x,y]
+    """
+    if p2 is None:
+        p2 = p1 + np.array([1, 0])
+    v0 = np.array(p0) - np.array(p1)
+    v1 = np.array(p2) - np.array(p1)
+
+    angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+    return np.degrees(angle)
+
+def save_image_and_retrieve_angles(image, model, prenew_image_name):
     width, height = get_width_height_of_np_array(image)
     x_values = prediction[0::2]
     y_values = prediction[1::2]
@@ -62,40 +93,22 @@ def plot_lines_between_keypoints(x_values_scaled, y_values_scaled):
 def scale_x_and_y_values(height, width, x_values, y_values):
     x_values_scaled = []
     y_values_scaled = []
-    for idx in range(number_keypoints):
+    for idx in range(x_values.shape[0]):
         x_scaled, y_scaled = scale_points(width, height, x_values[idx], y_values[idx])
         x_values_scaled.append(x_scaled)
         y_values_scaled.append(y_scaled)
     return x_values_scaled, y_values_scaled
 
+class KeypointPredictor:
+    def __init__(self):
+        self._resnet = ResNet50("FinalResNetModel3June")
+        self._unet = UNet("FinalUNetModel3June")
+        self._model_dict={"ResNet":self._resnet, "U-Net":self._unet}
 
-def scale_points(image_width, image_height, point_x, point_y, processed_image_width=224, processed_image_height=224):
-    """
-    :param image_width: Width of initial resized_and_converted_image
-    :param image_height: Height of initial image
-    :param processed_image_width: Width of processed image, 512 currently
-    :param processed_image_height: Height of processed image, 512 currently
-    :param point_x: X coordinate of point
-    :param point_y: Y coordinate of point
-    :return: The corresponding (x,y) of the point if it were to be situated in the same place, but on the other image
-    """
-    return point_x * image_width / processed_image_width, point_y * image_height / processed_image_height
-
-
-def get_width_height_of_np_array(image):
-    dimensions = image.shape
-    return dimensions[1], dimensions[0]
-
-
-def get_angle(p0, p1=np.array([0, 0]), p2=None):
-    """ compute angle (in degrees) for p0p1p2 corner
-    Inputs:
-        p0,p1,p2 - points in the form of [x,y]
-    """
-    if p2 is None:
-        p2 = p1 + np.array([1, 0])
-    v0 = np.array(p0) - np.array(p1)
-    v1 = np.array(p2) - np.array(p1)
-
-    angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
-    return np.degrees(angle)
+    def predict_keypoints(self, image, models=None):
+        if models is None:
+            models = ["ResNet"]
+        predictions = []
+        for model in models:
+            predictions.append(self._model_dict[model].predict_keypoints(image))
+        return predictions

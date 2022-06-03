@@ -15,21 +15,34 @@
 	{% endwith %}
 </p>
 
-{% if prediction_filename %}
-	<div>
-		<img src="{{ url_for('display_prediction_image', prediction_filename='../static/predictions/'+prediction_filename) }}">
-	</div>
-    <div>
-        <p>
-            The Norberg Angle for the left hip is {{ left_hip_norberg }}, resulting in a class {{ left_hip_classification }} classification.
-        </p>
-        <p>
-            The Norberg Angle for the right hip is {{ right_hip_norberg }}, resulting in a class {{ right_hip_classification }} classification.
-        </p>
-    </div>
+{% if display_infos %}
+    {% for display_info in display_infos %}
+        <div>
+            <p><b>Prediction for {{ display_info.model }}</b></p>
+        </div>
+        <div>
+            <img src="{{ url_for('display_prediction_image', prediction_filename='../static/predictions/'+display_info.prediction_filename) }}">
+        </div>
+        <div>
+            <p>
+                The Norberg Angle for the left hip is {{ display_info.left_hip_norberg }}, resulting in a class {{ display_info.left_hip_classification }} classification.
+            </p>
+            <p>
+                The Norberg Angle for the right hip is {{ display_info.right_hip_norberg }}, resulting in a class {{ display_info.right_hip_classification }} classification.
+            </p>
+        </div>
+        <br>
+    {% endfor %}
 {% endif %}
 <script src="../static/upload.js"></script>
+
+<p>Select models to be used in predicting the Norberg Angles:</p>
 <form method="post" action="/" enctype="multipart/form-data">
+    <input type="checkbox" id="ResNet" name="Model" value="ResNet">
+    <label for="ResNet">ResNet 50 model -Direct regression (Trained on ImageNet)</label><br>
+
+    <input type="checkbox" id="U-Net" name="Model" value="U-Net">
+    <label for="U-Net">U-Net model -Gaussian Heat map regression</label><br>
     <dl>
 		<p>
 			<input type="file" name="file" autocomplete="off" required>
@@ -38,15 +51,5 @@
     <p>
 		<input type="submit" value="Submit">
 	</p>
-</form>
-
-<p>Select models to be used in predicting the Norberg Angles:</p>
-<form>
-    <input type="checkbox" id="ResNet" name="Model" value="ResNet">
-    <label for="ResNet">ResNet 50 model (Trained on ImageNet)</label><br>
-
-    <input type="checkbox" id="Mask R-CNN" name="Model" value="Mask R-CNN">
-    <label for="Mask R-CNN">Mask R-CNN model (Trained on COCO)</label><br>
-    <input type="submit" onsubmit="submitRadiographs()" value="Submit">
 </form>
 

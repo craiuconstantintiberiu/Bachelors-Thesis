@@ -1,5 +1,5 @@
 import unittest
-from MLPart import scale_points, scale_x_and_y_values
+from dysplasia_classification.image_processing.ImageAnnotator import scale_points, scale_x_and_y_values
 import numpy as np
 
 class TestPointScaling(unittest.TestCase):

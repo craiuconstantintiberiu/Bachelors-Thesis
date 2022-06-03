@@ -1,7 +1,7 @@
 from abc import ABC
 
-from ImageConversion import convertImage
-from Model import Model
+from dysplasia_classification.image_processing.ImageConversion import convertImage
+from dysplasia_classification.models.Model import Model
 
 
 class ResNet50(Model, ABC):
