@@ -1,6 +1,7 @@
 <!doctype html>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <title>Dysplasia Classifier</title>
+<p><a href="{{ url_for('about') }}">About page</a></p>
 <h2>Select a radiograph to upload</h2>
 <p>
 	{% with messages = get_flashed_messages() %}
@@ -27,7 +28,7 @@
         </p>
     </div>
 {% endif %}
-
+<script src="../static/upload.js"></script>
 <form method="post" action="/" enctype="multipart/form-data">
     <dl>
 		<p>
@@ -38,3 +39,14 @@
 		<input type="submit" value="Submit">
 	</p>
 </form>
+
+<p>Select models to be used in predicting the Norberg Angles:</p>
+<form>
+    <input type="checkbox" id="ResNet" name="Model" value="ResNet">
+    <label for="ResNet">ResNet 50 model (Trained on ImageNet)</label><br>
+
+    <input type="checkbox" id="Mask R-CNN" name="Model" value="Mask R-CNN">
+    <label for="Mask R-CNN">Mask R-CNN model (Trained on COCO)</label><br>
+    <input type="submit" onsubmit="submitRadiographs()" value="Submit">
+</form>
+

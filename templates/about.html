@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<p><a href="{{ url_for('upload_form') }}">Upload Radiographs</a></p>
+<p><b><u>About</u></b></p>
+<p>This program computes the Norberg angles in a canine hip radiograph for the purposes of hip dysplasia detection.</p>
+<p>Canine Hip Dysplasia (CHD) is one of the most widespread hereditary developmental disorders in dogs. It has the potential to severely affect the quality of life. Therefore, timely detection and classification is esential to stop it from degrading further and not allow dogs woh carry strong genes in this respect to breed.</p>
+<p>One criteria for canine hip dysplasia used in CHD classification is represented by the Norberg angles. They are the angles between an acetabular rim, its corresponding femoral head and the opposite femoral head.</p>
+<img src=../static/Norberg%20Angle%202015%20Dysplasia.png>
+<p>One current method for calculating the angles consists in printing out the radiograph, using a compass to find the centers of the femoral heads, and then manually drawing lines between the acetabular rims and femoral heads. Afterwards, the angles are calculated with the use of a protractor This method has been identified to be time-consuming and prone to high angle variance.</p>
+<p>Another method for calculating the angles is by using specialized image annotation software for manually drawing the angles. This has been proven to be a better approach to Norberg Angle calculation, although it can be hampered by software adoption issues, software costs, lack of ease of use.</p>
+<p>For classifying hip dysplasia, the following criteria given by the FCI(Federation Cynologique International) are used.</p>
+<img style="max-height: 300px; width: auto; " src=../static/FCI_Scoring_radiological_scoring_2008.png>
+<br>
+<p>You can try manually annotating a radiograph below:</p>
+<canvas id="Canvas" width="756" height="755"></canvas>
+<script src="../static/about.js"></script>
+<form>
+    <p>Select the marker you will use</p>
+    <div>
+
+        <input type="radio" id="Left Acetabular" name="Current Marker" checked="checked" value="Left Acetabular">
+        <label for="Left Acetabular">Left Acetabular</label>
+
+        <input type="radio" id="Left Femoral Head" name="Current Marker" value="Left Femoral Head">
+        <label for="Left Femoral Head">Left Femoral Head</label>
+
+        <input type="radio" id="Right Femoral Head" name="Current Marker" value="Right Femoral Head">
+        <label for="Right Femoral Head">Right Femoral Head</label>
+
+        <input type="radio" id="Right Acetabular" name="Current Marker" value="Right Acetabular">
+        <label for="Right Acetabular">Right Acetabular</label>
+    </div>
+</form>
+<button id="calculate" onclick="calculateAll()" >Calculate angles</button>
+<p id="missing-points"></p>
+<p id="Angle Left"></p>
+<p id="Angle Right"></p>
+</body>
+</html>
