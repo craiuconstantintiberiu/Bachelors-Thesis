@@ -5,7 +5,7 @@ import cv2
 from dysplasia_classification.classification import dysplasia_classifier
 from dysplasia_classification.image_processing.ImageAnnotator import save_image_and_retrieve_angles
 from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
-from app import app
+from dysplasia_classification.app import app
 from flask import flash, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 
@@ -23,7 +23,7 @@ def get_chosen_models():
     return request.form.getlist('Model')
 
 
-def generate_name_for_predicted_image(model, image_name):
+def generate_file_name_for_prediction(model, image_name):
     return image_name + '_' + model
 
 
@@ -49,29 +49,36 @@ def upload_image():
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         file_dir = "static/uploads/" + filename
+
         img = cv2.imread(file_dir)
-        display_infos = []
+
         predictions = predictor.predict_keypoints(img, get_chosen_models())
-        for model, prediction in zip(get_chosen_models(), predictions):
-            new_image_name = generate_name_for_predicted_image(model, filename)
-            angle_left, angle_right = save_image_and_retrieve_angles(image=img,
-                                                                     new_image_name=new_image_name,
-                                                                     prediction=prediction)
-            left_hip_classification = dysplasia_classifier.classify_based_on_angle(angle_left).name
-            right_hip_classification = dysplasia_classifier.classify_based_on_angle(angle_right).name
 
-            display_infos.append({"model":model,
-                                  "left_hip_norberg": angle_left,
-                                  'left_hip_classification': left_hip_classification,
-                                  'right_hip_norberg': angle_right,
-                                  'right_hip_classification': right_hip_classification,
-                                  'prediction_filename': new_image_name + ".svg"})
-
+        display_infos=retrieve_dysplasia_information_and_save_annotated_image(filename, img, predictions)
         return render_template('upload.html', display_infos=display_infos)
 
     else:
         flash('Allowed image types are -> png, jpg, jpeg')
         return redirect(request.url)
+
+
+def retrieve_dysplasia_information_and_save_annotated_image(filename, img, predictions):
+    display_infos=[]
+    for model, prediction in zip(get_chosen_models(), predictions):
+        new_image_name = generate_file_name_for_prediction(model, filename)
+        angle_left, angle_right = save_image_and_retrieve_angles(image=img,
+                                                                 new_image_name=new_image_name,
+                                                                 prediction=prediction)
+        left_hip_classification = dysplasia_classifier.classify_based_on_angle(angle_left).name
+        right_hip_classification = dysplasia_classifier.classify_based_on_angle(angle_right).name
+
+        display_infos.append({"model": model,
+                              "left_hip_norberg": angle_left,
+                              'left_hip_classification': left_hip_classification,
+                              'right_hip_norberg': angle_right,
+                              'right_hip_classification': right_hip_classification,
+                              'prediction_filename': new_image_name + ".svg"})
+    return display_infos
 
 
 @app.route('/about')
