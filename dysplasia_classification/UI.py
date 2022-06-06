@@ -3,7 +3,7 @@ import os
 import cv2
 
 from dysplasia_classification.classification import dysplasia_classifier
-from dysplasia_classification.image_processing.ImageAnnotator import save_image_and_retrieve_angles
+from dysplasia_classification.image_processing.ImageAnnotator import ImageAnnotator
 from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
 from dysplasia_classification.app import app
 from flask import flash, request, redirect, url_for, render_template
@@ -54,7 +54,7 @@ def upload_image():
 
         predictions = predictor.predict_keypoints(img, get_chosen_models())
 
-        display_infos=retrieve_dysplasia_information_and_save_annotated_image(filename, img, predictions)
+        display_infos = retrieve_dysplasia_information_and_save_annotated_image(filename, img, predictions)
         return render_template('upload.html', display_infos=display_infos)
 
     else:
@@ -63,19 +63,18 @@ def upload_image():
 
 
 def retrieve_dysplasia_information_and_save_annotated_image(filename, img, predictions):
-    display_infos=[]
+    display_infos = []
     for model, prediction in zip(get_chosen_models(), predictions):
+        left_hip_angle, right_hip_angle = ImageAnnotator.retrieve_angles(prediction)
         new_image_name = generate_file_name_for_prediction(model, filename)
-        angle_left, angle_right = save_image_and_retrieve_angles(image=img,
-                                                                 new_image_name=new_image_name,
-                                                                 prediction=prediction)
-        left_hip_classification = dysplasia_classifier.classify_based_on_angle(angle_left).name
-        right_hip_classification = dysplasia_classifier.classify_based_on_angle(angle_right).name
+        ImageAnnotator.save_annotated_radiograph(img, new_image_name, left_hip_angle, right_hip_angle, prediction)
+        left_hip_classification = dysplasia_classifier.classify_based_on_angle(left_hip_angle).name
+        right_hip_classification = dysplasia_classifier.classify_based_on_angle(right_hip_angle).name
 
         display_infos.append({"model": model,
-                              "left_hip_norberg": angle_left,
+                              "left_hip_norberg": left_hip_angle,
                               'left_hip_classification': left_hip_classification,
-                              'right_hip_norberg': angle_right,
+                              'right_hip_norberg': right_hip_angle,
                               'right_hip_classification': right_hip_classification,
                               'prediction_filename': new_image_name + ".svg"})
     return display_infos

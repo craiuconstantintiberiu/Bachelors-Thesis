@@ -2,28 +2,25 @@ from abc import ABC
 
 import numpy as np
 
-from dysplasia_classification.image_processing.ImageConversion import convertImage
 from dysplasia_classification.models.Model import Model
 
 
 class UNet(Model, ABC):
     def predict_keypoints(self, image):
-        masks = self.model.predict(convertImage(image))
+        masks = self.model.predict(Model._process_image(image))
         return self._find_coordinates_for_prediction(masks)
 
     def _find_coordinates_for_mask(self, mask):
-        hm_sum = np.sum(mask)
-
-        index_map = [j for i in range(224) for j in range(224)]
-        index_map = np.reshape(index_map, newshape=(224, 224))
-
-        x_score_map = mask * index_map / hm_sum
-        y_score_map = mask * np.transpose(index_map) / hm_sum
-
-        px = np.sum(np.sum(x_score_map, axis=None))
-        py = np.sum(np.sum(y_score_map, axis=None))
-
-        return px, py
+        summ = np.sum(mask)
+        positions = np.zeros((224, 224))
+        for i in range(224):
+            for j in range(224):
+                positions[i][j] = j
+        x_score_map = mask * positions / summ
+        y_score_map = mask * np.transpose(positions) / summ
+        keypoint_x = np.sum(x_score_map, axis=None)
+        keypoint_y = np.sum(y_score_map, axis=None)
+        return keypoint_x, keypoint_y
 
     def _find_coordinates_for_prediction(self, masks):
         preds = []
