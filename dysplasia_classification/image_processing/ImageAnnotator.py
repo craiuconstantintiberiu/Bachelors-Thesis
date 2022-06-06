@@ -8,8 +8,15 @@ class ImageAnnotator:
     @staticmethod
     def retrieve_angles(prediction):
         x_values, y_values = ImageAnnotator.obtain_x_and_y_values(prediction)
-        left_hip_angle, right_hip_angle = ImageAnnotator.obtain_hip_angles(x_values, y_values)
-        return left_hip_angle, right_hip_angle
+
+        angle1 = ImageAnnotator.get_angle(np.array([x_values[0], y_values[0]]),
+                                          np.array([x_values[1], y_values[1]]),
+                                          np.array([x_values[2], y_values[2]]))
+
+        angle2 = ImageAnnotator.get_angle(np.array([x_values[1], y_values[1]]),
+                                          np.array([x_values[2], y_values[2]]),
+                                          np.array([x_values[3], y_values[3]]))
+        return round(angle1, 2), round(angle2, 2)
 
     @staticmethod
     def obtain_x_and_y_values(prediction):
@@ -18,7 +25,7 @@ class ImageAnnotator:
         return x_values, y_values
 
     @staticmethod
-    def save_annotated_radiograph(image, new_image_name, left_hip_angle, right_hip_angle, prediction):
+    def annotate_and_save_radiograph(image, new_image_name, left_hip_angle, right_hip_angle, prediction):
         width, height = image.shape[1], image.shape[0]
         x_values, y_values = ImageAnnotator.obtain_x_and_y_values(prediction)
         x_values_scaled, y_values_scaled = ImageAnnotator.scale_x_and_y_values(height, width, x_values, y_values)
@@ -32,27 +39,17 @@ class ImageAnnotator:
         plt.show()
 
     @staticmethod
-    def plot_hip_angle_arcs(axis, left_hip_angle, right_hip_angle, x_values_scaled, y_values_scaled):
-        intersection_point_1 = (x_values_scaled[1], y_values_scaled[1])
-        AngleAnnotation(intersection_point_1, (x_values_scaled[2], y_values_scaled[2]),
-                        (x_values_scaled[0], y_values_scaled[0]), ax=axis, size=20, text=str(left_hip_angle),
+    def plot_hip_angle_arcs(axis, left_hip_angle, right_hip_angle, x_values, y_values):
+        intersection_point_1 = (x_values[1], y_values[1])
+        AngleAnnotation(intersection_point_1, (x_values[2], y_values[2]),
+                        (x_values[0], y_values[0]), ax=axis, size=20, text=str(left_hip_angle),
                         textposition="inside",
                         text_kw=dict(fontsize=3, color="blue"))
-        intersection_point_2 = (x_values_scaled[2], y_values_scaled[2])
-        AngleAnnotation(intersection_point_2, (x_values_scaled[3], y_values_scaled[3]),
-                        (x_values_scaled[1], y_values_scaled[1]), ax=axis, size=20, text=str(right_hip_angle),
+        intersection_point_2 = (x_values[2], y_values[2])
+        AngleAnnotation(intersection_point_2, (x_values[3], y_values[3]),
+                        (x_values[1], y_values[1]), ax=axis, size=20, text=str(right_hip_angle),
                         textposition="inside",
                         text_kw=dict(fontsize=3, color="blue"))
-
-    @staticmethod
-    def obtain_hip_angles(x_values_scaled, y_values_scaled):
-        angle1 = ImageAnnotator.get_angle(np.array([x_values_scaled[0], y_values_scaled[0]]),
-                                          np.array([x_values_scaled[1], y_values_scaled[1]]),
-                                          np.array([x_values_scaled[2], y_values_scaled[2]]))
-        angle2 = ImageAnnotator.get_angle(np.array([x_values_scaled[1], y_values_scaled[1]]),
-                                          np.array([x_values_scaled[2], y_values_scaled[2]]),
-                                          np.array([x_values_scaled[3], y_values_scaled[3]]))
-        return round(angle1, 2), round(angle2, 2)
 
     @staticmethod
     def plot_lines_between_keypoints(x_values_scaled, y_values_scaled):
@@ -68,24 +65,24 @@ class ImageAnnotator:
         x_values_scaled = []
         y_values_scaled = []
         for idx in range(len(x_values)):
-            x_scaled, y_scaled = ImageAnnotator.scale_points(width, height, x_values[idx], y_values[idx])
+            x_scaled, y_scaled = ImageAnnotator.scale_point(width, height, x_values[idx], y_values[idx])
             x_values_scaled.append(x_scaled)
             y_values_scaled.append(y_scaled)
         return x_values_scaled, y_values_scaled
 
     @staticmethod
-    def scale_points(image_width, image_height, point_x, point_y, processed_image_width=224,
-                     processed_image_height=224):
+    def scale_point(new_width, new_height, x, y, original_width=224,
+                    original_height=224):
         """
-        :param image_width: Width of initial resized_and_converted_image
-        :param image_height: Height of initial image
-        :param processed_image_width: Width of processed image, 512 currently
-        :param processed_image_height: Height of processed image, 512 currently
-        :param point_x: X coordinate of point
-        :param point_y: Y coordinate of point
+        :param new_width: Width of initial resized_and_converted_image
+        :param new_height: Height of initial image
+        :param original_width: Width of processed image
+        :param original_height: Height of processed image
+        :param x: X coordinate of point
+        :param y: Y coordinate of point
         :return: The corresponding (x,y) of the point if it were to be situated in the same place, but on the other image
         """
-        return point_x * image_width / processed_image_width, point_y * image_height / processed_image_height
+        return x * new_width / original_width, y * new_height / original_height
 
     @staticmethod
     def get_angle(p0, p1=np.array([0, 0]), p2=None):

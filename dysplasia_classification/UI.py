@@ -2,7 +2,7 @@ import os
 
 import cv2
 
-from dysplasia_classification.classification import dysplasia_classifier
+from dysplasia_classification.classification.DysplasiaClassifier import DysplasiaClassifier
 from dysplasia_classification.image_processing.ImageAnnotator import ImageAnnotator
 from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
 from dysplasia_classification.app import app
@@ -67,9 +67,9 @@ def retrieve_dysplasia_information_and_save_annotated_image(filename, img, predi
     for model, prediction in zip(get_chosen_models(), predictions):
         left_hip_angle, right_hip_angle = ImageAnnotator.retrieve_angles(prediction)
         new_image_name = generate_file_name_for_prediction(model, filename)
-        ImageAnnotator.save_annotated_radiograph(img, new_image_name, left_hip_angle, right_hip_angle, prediction)
-        left_hip_classification = dysplasia_classifier.classify_based_on_angle(left_hip_angle).name
-        right_hip_classification = dysplasia_classifier.classify_based_on_angle(right_hip_angle).name
+        ImageAnnotator.annotate_and_save_radiograph(img, new_image_name, left_hip_angle, right_hip_angle, prediction)
+        left_hip_classification = DysplasiaClassifier.classify_based_on_angle(left_hip_angle).value
+        right_hip_classification = DysplasiaClassifier.classify_based_on_angle(right_hip_angle).value
 
         display_infos.append({"model": model,
                               "left_hip_norberg": left_hip_angle,

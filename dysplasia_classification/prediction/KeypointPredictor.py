@@ -5,7 +5,7 @@ class KeypointPredictor:
     def __init__(self):
         self._resnet = ResNet50("./FinalResNetModel3June")
         self._unet = UNet("./FinalUNetModel3June")
-        self._model_dict = {"ResNet": self._resnet, "U-Net": self._unet}
+        self._model_dict = {"ResNet": ResNet50("./FinalResNetModel3June"), "U-Net": UNet("./FinalUNetModel3June")}
 
     def predict_keypoints(self, image, models=None):
         if models is None:
