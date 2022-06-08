@@ -11,10 +11,10 @@ class KeypointPredictor:
 
     def predict_keypoints(self, image, model):
         prediction = self._model_dict[model].predict_keypoints(image)
-        return KeypointPredictor._convert_to_HipInformation(prediction, model)
+        return KeypointPredictor.__convert_to_HipInformation(prediction, model)
 
     @staticmethod
-    def _convert_to_HipInformation(prediction, model):
+    def __convert_to_HipInformation(prediction, model):
         x_values = prediction[0::2]
         y_values = prediction[1::2]
         return HipInformation((x_values[0], y_values[0]), (x_values[1], y_values[1]),

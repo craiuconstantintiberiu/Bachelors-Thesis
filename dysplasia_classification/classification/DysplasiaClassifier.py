@@ -3,7 +3,7 @@ from dysplasia_classification.classification.DysplasiaGrade import DysplasiaGrad
 
 class DysplasiaClassifier:
     @staticmethod
-    def _classify_based_on_angle(angle):
+    def __classify_based_on_angle(angle):
         if angle < 90:
             return DysplasiaGrade.E
         if angle < 100:
@@ -12,6 +12,6 @@ class DysplasiaClassifier:
 
     @staticmethod
     def classify_hip(hip_information):
-        return DysplasiaClassifier._classify_based_on_angle(
-            hip_information.left_hip_angle), DysplasiaClassifier._classify_based_on_angle(
+        return DysplasiaClassifier.__classify_based_on_angle(
+            hip_information.left_hip_angle), DysplasiaClassifier.__classify_based_on_angle(
             hip_information.right_hip_angle)
