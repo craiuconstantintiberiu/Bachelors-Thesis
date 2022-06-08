@@ -15,20 +15,20 @@
 	{% endwith %}
 </p>
 
-{% if display_infos %}
-    {% for display_info in display_infos %}
+{% if hip_infos %}
+    {% for display_info in hip_infos %}
         <div>
             <p><b>Prediction for {{ display_info.model }}</b></p>
         </div>
         <div>
-            <img src="{{ url_for('display_prediction_image', prediction_filename='../static/predictions/'+display_info.prediction_filename) }}">
+            <img src="{{ url_for('display_prediction_image', file_name='../static/predictions/'+display_info.file_name) }}">
         </div>
         <div>
             <p>
-                The Norberg Angle for the left hip is {{ display_info.left_hip_norberg }}, resulting in a class {{ display_info.left_hip_classification }} classification.
+                The Norberg Angle for the left hip is {{ display_info.left_hip_angle }}, resulting in a class {{ display_info.left_hip_class.value }} classification.
             </p>
             <p>
-                The Norberg Angle for the right hip is {{ display_info.right_hip_norberg }}, resulting in a class {{ display_info.right_hip_classification }} classification.
+                The Norberg Angle for the right hip is {{ display_info.right_hip_angle }}, resulting in a class {{ display_info.right_hip_class.value }} classification.
             </p>
         </div>
         <br>
@@ -39,10 +39,10 @@
 <p>Select models to be used in predicting the Norberg Angles:</p>
 <form method="post" action="/" enctype="multipart/form-data">
     <input type="checkbox" id="ResNet" name="Model" value="ResNet">
-    <label for="ResNet">ResNet 50 model -Direct regression (Trained on ImageNet)</label><br>
+    <label for="ResNet">ResNet 50 model - Direct regression (Trained on ImageNet)</label><br>
 
     <input type="checkbox" id="U-Net" name="Model" value="U-Net">
-    <label for="U-Net">U-Net model -Gaussian Heat map regression</label><br>
+    <label for="U-Net">U-Net model - Gaussian Heat map regression</label><br>
     <dl>
 		<p>
 			<input type="file" name="file" autocomplete="off" required>
