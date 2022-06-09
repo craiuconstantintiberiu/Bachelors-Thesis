@@ -12,16 +12,8 @@ from dysplasia_classification.models.Model import Model
 from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
 
 
-class SimpleKeypointPredictor(KeypointPredictor):
-    def __init__(self):
-        self._model_dict = {}
-
-
 class TestUI(TestCase):
-    #
-    # @patch("dysplasia_classification.UI.predictor")
-    # @patch("dysplasia_classification.UI.processor")
-    # @patch("dysplasia_classification.UI.render_template")
+
     @patch("dysplasia_classification.UI.get_chosen_models")
     @patch("flask.templating.render_template")
     @patch("dysplasia_classification.UI.processor")
@@ -84,13 +76,3 @@ class TestUI(TestCase):
                 "The Norberg Angle for the left hip is 120, resulting in a class A-B classification."))
             self.assertTrue(radiographs.__contains__(
                 "The Norberg Angle for the right hip is 130, resulting in a class A-B classification."))
-
-
-class SimpleModel(Model):
-    def __init__(self):
-        pass
-
-
-class SimpleFileStorage(FileStorage):
-    def __init__(self):
-        self.filename = "radiograph.png"
