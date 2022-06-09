@@ -35,44 +35,84 @@ class UNet(Model, ABC):
         return preds
 
     def create_model(self):
-        def downsample_block(x, block_num, n_filters, pooling_on=True):
-            x = Conv2D(n_filters, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
-                       name="Block" + str(block_num) + "_Conv1")(x)
-            x = Conv2D(n_filters, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
-                       name="Block" + str(block_num) + "_Conv2")(x)
-            skip = x
-
-            if pooling_on is True:
-                x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid',
-                                 name="Block" + str(block_num) + "_Pool1")(x)
-
-            return x, skip
-
-        def upsample_block(x, skip, block_num, n_filters):
-            x = Conv2DTranspose(n_filters, kernel_size=(2, 2), strides=2, padding='valid', activation='relu',
-                                name="Block" + str(block_num) + "_ConvT1")(x)
-            x = concatenate([x, skip], axis=-1, name="Block" + str(block_num) + "_Concat1")
-            x = Conv2D(n_filters, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
-                       name="Block" + str(block_num) + "_Conv1")(x)
-            x = Conv2D(n_filters, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
-                       name="Block" + str(block_num) + "_Conv2")(x)
-
-            return x
 
         input = Input((224,224,1), name="Input")
 
-        # downsampling
-        x, skip1 = downsample_block(input, 1, 64)
-        x, skip2 = downsample_block(x, 2, 128)
-        x, skip3 = downsample_block(x, 3, 256)
-        x, skip4 = downsample_block(x, 4, 512)
-        x, _ = downsample_block(x, 5, 1024, pooling_on=False)
+        # contract
+        x = Conv2D(64, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block{0}_Conv1".format(str(1)))(input)
+        x = Conv2D(64, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(1) + "_Conv2")(x)
+        skip1 = x
+        x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid',
+                         name="Block" + str(1) + "_Pool1")(x)
 
-        # upsampling
-        x = upsample_block(x, skip4, 6, 512)
-        x = upsample_block(x, skip3, 7, 256)
-        x = upsample_block(x, skip2, 8, 128)
-        x = upsample_block(x, skip1, 9, 64)
+
+        x = Conv2D(128, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(2) + "_Conv1")(x)
+        x = Conv2D(128, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(2) + "_Conv2")(x)
+        skip2 = x
+    
+        x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid',
+                         name="Block" + str(2) + "_Pool1")(x)
+
+        x = Conv2D(256, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(3) + "_Conv1")(x)
+        x = Conv2D(256, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(3) + "_Conv2")(x)
+        skip3 = x
+
+        x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid',
+                         name="Block" + str(3) + "_Pool1")(x)
+
+        x = Conv2D(512, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(4) + "_Conv1")(x)
+        x = Conv2D(512, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(4) + "_Conv2")(x)
+        skip4 = x
+
+        x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid',
+                             name="Block" + str(4) + "_Pool1")(x)
+
+        x = Conv2D(1024, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(5) + "_Conv1")(x)
+        x = Conv2D(1024, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(5) + "_Conv2")(x)
+
+
+        #expand
+        x = Conv2DTranspose(512, kernel_size=(2, 2), strides=2, padding='valid', activation='relu',
+                            name="Block" + str(6) + "_ConvT1")(x)
+        x = concatenate([x, skip4], axis=-1, name="Block" + str(6) + "_Concat1")
+        x = Conv2D(512, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(6) + "_Conv1")(x)
+        x = Conv2D(512, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(6) + "_Conv2")(x)
+
+        x = Conv2DTranspose(256, kernel_size=(2, 2), strides=2, padding='valid', activation='relu',
+                            name="Block" + str(7) + "_ConvT1")(x)
+        x = concatenate([x, skip3], axis=-1, name="Block" + str(7) + "_Concat1")
+        x = Conv2D(256, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(7) + "_Conv1")(x)
+        x = Conv2D(256, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(7) + "_Conv2")(x)
+
+        x = Conv2DTranspose(128, kernel_size=(2, 2), strides=2, padding='valid', activation='relu',
+                            name="Block" + str(8) + "_ConvT1")(x)
+        x = concatenate([x, skip2], axis=-1, name="Block" + str(8) + "_Concat1")
+        x = Conv2D(128, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(8) + "_Conv1")(x)
+        x = Conv2D(128, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(8) + "_Conv2")(x)
+
+        x = Conv2DTranspose(64, kernel_size=(2, 2), strides=2, padding='valid', activation='relu',
+                            name="Block" + str(9) + "_ConvT1")(x)
+        x = concatenate([x, skip1], axis=-1, name="Block" + str(9) + "_Concat1")
+        x = Conv2D(64, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(9) + "_Conv1")(x)
+        x = Conv2D(64, kernel_size=(3, 3), strides=1, padding='same', activation='relu',
+                   name="Block" + str(9) + "_Conv2")(x)
 
         output = Conv2D(4, kernel_size=(1, 1), strides=1, padding='valid', activation='linear', name="output")(x)
         output = Reshape(target_shape=(224 * 224 * 4, 1))(output)

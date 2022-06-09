@@ -19,58 +19,33 @@ class SimpleKeypointPredictor(KeypointPredictor):
         self._model_dict = {}
 
 
-class TestUI(TestCase):
-    #
-    # @patch("dysplasia_classification.UI.predictor")
-    # @patch("dysplasia_classification.UI.processor")
-    # @patch("dysplasia_classification.UI.render_template")
+class TestUIIntegration(TestCase):
+
+    @patch("dysplasia_classification.image_processing.ImageAnnotator")
+    @patch("tests.test_UIIntegration.SimpleModel")
     @patch("dysplasia_classification.UI.get_chosen_models")
     @patch("flask.templating.render_template")
+    @patch("dysplasia_classification.prediction.HipProcessor.HipProcessor")
     @patch("dysplasia_classification.UI.processor")
     @patch("werkzeug.datastructures.FileStorage")
     @patch("cv2.imread")
-    def test_afterRadiographIsProcessed_thenUploadPageIsShownAgain(self, imread, file,  processor,
-                                                                   render_template,chosen_models):
+    def test_afterRadiographIsProcessed_thenAnnotatedRadiographAreShown(self, imread, file, processor, hp,
+                                                                        render_template, chosen_models, model,
+                                                                        annotator):
         img = np.zeros((224, 224))
-        file.filename = "radiograph.png"
-        imread.return_value = img
-        chosen_models.return_value=[]
-
-        with app.test_request_context():
-            radiographs = return_hip_information_and_annotated_radiographs(file)
-            self.assertTrue(radiographs.__contains__(
-                "Select models to be used in predicting the Norberg Angles:"))
-
-    @patch("dysplasia_classification.UI.get_chosen_models")
-    @patch("flask.templating.render_template")
-    @patch("dysplasia_classification.UI.processor")
-    @patch("werkzeug.datastructures.FileStorage")
-    @patch("cv2.imread")
-    def test_afterRadiographIsProcessed_thenAnnotatedRadiographAreShown(self, imread, file,  processor,
-                                                                   render_template,chosen_models):
-        img = np.zeros((224, 224))
-        hipInformation1 = HipInformation((1, 1), (2, 2), (3, 3), (4, 4), "ResNet")
-        hipInformation1.left_hip_angle = 90
-        hipInformation1.right_hip_angle = 100
-        hipInformation1.left_hip_class = DysplasiaGrade.CD
-        hipInformation1.right_hip_class = DysplasiaGrade.CD
-        hipInformation1.file_name = "hip1.png"
-
-        hipInformation2 = HipInformation((1, 1), (2, 2), (3, 3), (4, 4), "U-Net")
-        hipInformation2.left_hip_angle = 120
-        hipInformation2.right_hip_angle = 130
-        hipInformation2.left_hip_class = DysplasiaGrade.AB
-        hipInformation2.right_hip_class = DysplasiaGrade.AB
-        hipInformation2.file_name = "hip2.png"
 
         file.filename = "radiograph.png"
         imread.return_value = img
-        processor.process_radiograph.return_value = [hipInformation1, hipInformation2]
-        chosen_models.return_value=["ResNet","U-Net"]
+
+        keypoint_predictor = SimpleKeypointPredictor()
+        keypoint_predictor._model_dict = {"model": SimpleModel()}
+        processor.keypoint_predictor = keypoint_predictor
+        chosen_models.return_value = ["model"]
 
         with app.test_request_context():
             radiographs = return_hip_information_and_annotated_radiographs(file)
-            processor.process_radiograph.assert_called_once_with(img,["ResNet","U-Net"], "radiograph.png")
+            print(radiographs)
+            processor.process_radiograph.assert_called_once_with(img, ["model"], "radiograph.png")
 
             self.assertTrue(radiographs.__contains__("Prediction for ResNet"))
             self.assertTrue(radiographs.__contains__("<img src=\"/display/../static/predictions/hip1.png\">"))
@@ -86,6 +61,11 @@ class TestUI(TestCase):
                 "The Norberg Angle for the left hip is 120, resulting in a class A-B classification."))
             self.assertTrue(radiographs.__contains__(
                 "The Norberg Angle for the right hip is 130, resulting in a class A-B classification."))
+
+
+class SimpleKeypointPredictor(KeypointPredictor):
+    def __init__(self):
+        self._model_dict = {}
 
 
 class SimpleModel(Model):
