@@ -6,7 +6,8 @@ import os
 
 class KeypointPredictor:
     def __init__(self):
-        self._model_dict = {
+        self._model_dict = {"ResNet": ResNet50(
+            os.path.join(os.path.dirname(__file__), "../model_weights/MorningResNetWeightsStripedMSE.h5")),
                             "U-Net": UNet(os.path.join(os.path.dirname(__file__),
                                                        "../model_weights/unetStripped.h5"))}
 

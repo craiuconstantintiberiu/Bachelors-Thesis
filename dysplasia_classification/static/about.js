@@ -42,35 +42,6 @@ function drawLines() {
     context.stroke();
 }
 
-function drawArcs() {
-    let leftAcetabular = pointMap.get("Left Acetabular");
-    let leftFemoral = pointMap.get("Left Femoral Head");
-    let rightFemoral = pointMap.get("Right Femoral Head");
-    let rightAcetabular = pointMap.get("Right Acetabular");
-    var angle1=calculateAngle(pointMap.get("Left Femoral Head"), pointMap.get("Left Acetabular"), pointMap.get("Right Femoral Head"))
-    var angle2=calculateAngle(pointMap.get("Right Femoral Head"), pointMap.get("Right Acetabular"), pointMap.get("Left Femoral Head"))
-
-    context.beginPath();
-
-    let distX= Math.abs(leftFemoral.XPos-leftAcetabular.XPos)
-    let distY= Math.abs(leftFemoral.YPos-leftAcetabular.YPos)
-    let xStart= leftFemoral.XPos-distX/2
-    let yStart= leftFemoral.YPos-distY/2
-    let startAngle=0;
-    context.arc(xStart, yStart, 10, startAngle, angle1, false);
-    context.stroke()
-    context.beginPath();
-
-    distX= Math.abs(rightFemoral.XPos-rightAcetabular.XPos)
-    distY= Math.abs(rightFemoral.YPos-rightAcetabular.YPos)
-    xStart= rightFemoral.XPos+distX/2
-    yStart= rightFemoral.YPos+distY/2
-    startAngle=0;
-    context.arc(xStart, yStart, 10, startAngle, angle2, false);
-    context.stroke()
-
-}
-
 var calculateAll = function (){
     let pointsLeftToSet = unsetPoints();
     if(pointsLeftToSet.length!==0){
@@ -95,7 +66,7 @@ var calculateAll = function (){
 
 var Marker = function () {
     this.Sprite = new Image();
-    this.Sprite.src = "../static/marker.png"
+    this.Sprite.src = "../static/purpleMarker.png"
     this.Width = 12;
     this.Height = 20;
     this.XPos = 0;
@@ -103,12 +74,9 @@ var Marker = function () {
 }
 
 var mouseClicked = function (mouse) {
-    // Get corrent mouse coords
     var rect = canvas.getBoundingClientRect();
     var mouseXPos = (mouse.x - rect.left);
     var mouseYPos = (mouse.y - rect.top);
-
-
     let currentMarker = document.querySelector('input[name="Current Marker"]:checked').value;
     var marker = new Marker();
     marker.XPos = mouseXPos
@@ -129,7 +97,6 @@ var main = function () {
     draw();
     if(unsetPoints().length===0){
         drawLines()
-        drawArcs();
     }
 };
 

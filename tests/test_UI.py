@@ -5,7 +5,7 @@ import numpy as np
 from werkzeug.datastructures import FileStorage, ImmutableMultiDict
 
 import dysplasia_classification.UI
-from dysplasia_classification.UI import return_hip_information_and_annotated_radiographs
+from dysplasia_classification.UI import show_hip_information_and_annotated_radiographs
 from dysplasia_classification.app import app
 from dysplasia_classification.classification.DysplasiaGrade import DysplasiaGrade
 from dysplasia_classification.hip_information.HipInformation import HipInformation
@@ -37,7 +37,7 @@ class TestUI(TestCase):
         chosen_models.return_value=[]
 
         with app.test_request_context():
-            radiographs = return_hip_information_and_annotated_radiographs(file)
+            radiographs = show_hip_information_and_annotated_radiographs(file)
             self.assertTrue(radiographs.__contains__(
                 "Select models to be used in predicting the Norberg Angles:"))
 
@@ -69,7 +69,7 @@ class TestUI(TestCase):
         chosen_models.return_value=["ResNet","U-Net"]
 
         with app.test_request_context():
-            radiographs = return_hip_information_and_annotated_radiographs(file)
+            radiographs = show_hip_information_and_annotated_radiographs(file)
             processor.process_radiograph.assert_called_once_with(img,["ResNet","U-Net"], "radiograph.png")
 
             self.assertTrue(radiographs.__contains__("Prediction for ResNet"))

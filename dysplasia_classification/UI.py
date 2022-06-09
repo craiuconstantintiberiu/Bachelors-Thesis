@@ -38,13 +38,13 @@ def upload_image():
         flash('No image selected for uploading')
         return redirect(request.url)
     if file and allowed_file(file.filename):
-        return return_hip_information_and_annotated_radiographs(file)
+        return show_hip_information_and_annotated_radiographs(file)
     else:
         flash('Allowed image types are -> png, jpg, jpeg')
         return redirect(request.url)
 
 
-def return_hip_information_and_annotated_radiographs(file):
+def show_hip_information_and_annotated_radiographs(file):
     filename = secure_filename(file.filename)
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)

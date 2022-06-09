@@ -10,36 +10,21 @@ from dysplasia_classification.prediction.HipProcessor import HipProcessor
 from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
 
 
-class TestHipProcessor(TestCase):
+class TestHipProcessorIntegration(TestCase):
 
-    @patch("dysplasia_classification.prediction.HipProcessor.ImageAnnotator")
-    @patch("tests.test_HipProcessor.KeypointPredictor")
-    def test_integration_whenProcessingRadiograph_thenImageIsAnnotatedAndSaved_andReturnValueIsCorrect(self, predictor,
-                                                                                                       annotator):
-        img = np.zeros((224, 224))
-        processor = HipProcessor(predictor)
+    def test_integration_whenProcessingRadiograph_thenRadiographsAreProcessedAndHipInfosAreSet(self):
+        img = (255.0 * np.random.random((224, 224, 3))).astype(np.uint8)
+
+        keypoint_predictor = KeypointPredictor()
+        processor = HipProcessor(keypoint_predictor)
         file_name = "radiograph"
 
-        hip_info = HipInformation((1, 1), (2, 2), (3, 3), (4, 4), "model")
-        predictor.predict_keypoints.return_value = hip_info
+        hip_infos = processor.process_radiograph(img, ["ResNet", "U-Net"], file_name)
+        print(hip_infos)
 
-        hip_infos = processor.process_radiograph(img, ["model"], file_name)
-
-        annotator.annotate_and_save_radiograph.assert_called_once_with(img, ANY, "radiograph_model.svg", hip_info)
-
-        first_hip_info = hip_infos[0]
-        self.assertEqual(first_hip_info.left_acetabular, hip_info.left_acetabular)
-        self.assertEqual(first_hip_info.left_femoral, hip_info.left_femoral)
-        self.assertEqual(first_hip_info.right_femoral, hip_info.right_femoral)
-        self.assertEqual(first_hip_info.right_acetabular, hip_info.right_acetabular)
-        self.assertEqual(first_hip_info.model, hip_info.model)
-
-
-class SimpleKeypointPredictor(KeypointPredictor):
-    def __init__(self):
-        self._model_dict = {}
-
-
-class SimpleModel(Model):
-    def __init__(self):
-        pass
+        self.assertEqual(hip_infos[0].model, "ResNet")
+        self.assertNotEqual(hip_infos[0].left_hip_class, "")
+        self.assertNotEqual(hip_infos[0].right_hip_class, "")
+        self.assertEqual(hip_infos[1].model, "U-Net")
+        self.assertNotEqual(hip_infos[1].left_hip_class, "")
+        self.assertNotEqual(hip_infos[1].right_hip_class, "")
