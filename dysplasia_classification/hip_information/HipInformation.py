@@ -1,5 +1,5 @@
 class HipInformation:
-    #Class storing information about predictions on a canine hip regarding the hip dysplasia grade for each hip
+    # Class storing information about predictions on a canine hip regarding the hip dysplasia grade for each hip
     def __init__(self, left_acetabular, left_femoral, right_femoral, right_acetabular, model):
         self.left_acetabular = left_acetabular
         self.left_femoral = left_femoral

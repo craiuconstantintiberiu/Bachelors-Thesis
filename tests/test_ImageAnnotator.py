@@ -30,9 +30,11 @@ class TestImageAnnotator(TestCase):
     def test_annotated_radiograph_draws_arcs_correctly(self, angle_annotation, savefig):
         self.annotate_and_save_radiograph()
         self.assertEqual(angle_annotation.call_count, 2)
-        angle_annotation.assert_any_call((4.0, 4.0), (6.0, 6.0), (2.0, 2.0), ax=ANY,size=20, text='0', textposition='inside',
+        angle_annotation.assert_any_call((4.0, 4.0), (6.0, 6.0), (2.0, 2.0), ax=ANY, size=20, text='0',
+                                         textposition='inside',
                                          text_kw={'fontsize': 3, 'color': 'blue'})
-        angle_annotation.assert_any_call((6.0, 6.0), (8.0, 8.0), (4.0, 4.0), ax=ANY,size=20, text='0', textposition='inside',
+        angle_annotation.assert_any_call((6.0, 6.0), (8.0, 8.0), (4.0, 4.0), ax=ANY, size=20, text='0',
+                                         textposition='inside',
                                          text_kw={'fontsize': 3, 'color': 'blue'})
 
     def annotate_and_save_radiograph(self):

@@ -2,7 +2,6 @@ from dysplasia_classification.app import app
 from dysplasia_classification.classification.DysplasiaClassifier import DysplasiaClassifier
 from dysplasia_classification.image_processing.ImageAnnotator import ImageAnnotator
 from dysplasia_classification.image_processing.ImageUtils import ImageUtils
-from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
 
 
 class HipProcessor:

@@ -38,4 +38,4 @@ class TestDysplasiaClassifier(TestCase):
 
     def test_given80And104Degrees_thenReturnGradeEAndAb(self):
         hip_info = create_hip_info(80, 104)
-        self.assertEqual(DysplasiaClassifier.classify_hip(hip_info),(DysplasiaGrade.E, DysplasiaGrade.AB))
+        self.assertEqual(DysplasiaClassifier.classify_hip(hip_info), (DysplasiaGrade.E, DysplasiaGrade.AB))

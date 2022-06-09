@@ -1,16 +1,10 @@
 from unittest import TestCase
-from unittest.mock import patch, ANY
+from unittest.mock import patch
 
 import numpy as np
-from werkzeug.datastructures import FileStorage, ImmutableMultiDict
 
-import dysplasia_classification.UI
 from dysplasia_classification.UI import show_hip_information_and_annotated_radiographs, processor
 from dysplasia_classification.app import app
-from dysplasia_classification.classification.DysplasiaGrade import DysplasiaGrade
-from dysplasia_classification.hip_information.HipInformation import HipInformation
-from dysplasia_classification.models.Model import Model
-from dysplasia_classification.prediction.HipProcessor import HipProcessor
 from dysplasia_classification.prediction.KeypointPredictor import KeypointPredictor
 
 

@@ -28,16 +28,17 @@ class TestKeypointPredictor(TestCase):
 
     @patch("tests.test_KeypointPredictor.SimpleModel")
     def test_whenPredictingKeypoints_thenCallToModelIsMade(self, model):
-        predictor= SimpleKeypointPredictor()
-        predictor._model_dict={"model":model}
-        model.predict_keypoints.return_value=np.array([1, 2, 3, 4, 5, 6, 7,8 ])
+        predictor = SimpleKeypointPredictor()
+        predictor._model_dict = {"model": model}
+        model.predict_keypoints.return_value = np.array([1, 2, 3, 4, 5, 6, 7, 8])
         predictor.predict_keypoints(np.zeros((224, 224)), "model")
         model.predict_keypoints.assert_called_once()
 
 
 class SimpleKeypointPredictor(KeypointPredictor):
     def __init__(self):
-        self._model_dict={}
+        self._model_dict = {}
+
 
 class SimpleModel(Model):
     def __init__(self):

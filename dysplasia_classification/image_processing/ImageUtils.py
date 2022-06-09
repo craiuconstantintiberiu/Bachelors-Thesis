@@ -14,7 +14,7 @@ class ImageUtils:
         :return: angle, in degrees
         '''
         diff1 = np.array(p0) - np.array(p1)
-        mod1 = math.sqrt(diff1[0]*diff1[0] + diff1[1]*diff1[1])
+        mod1 = math.sqrt(diff1[0] * diff1[0] + diff1[1] * diff1[1])
 
         diff2 = np.array(p2) - np.array(p1)
         mod2 = math.sqrt(diff2[0] * diff2[0] + diff2[1] * diff2[1])
