@@ -9,6 +9,14 @@ from ..image_processing.AngleAnnotation import AngleAnnotation
 class ImageAnnotator:
     @staticmethod
     def annotate_and_save_radiograph(image, folder, new_image_name, hip_info):
+        '''
+        Saves an annotated radiograph containing the lines and arcs drawn for the Norberg angles
+        :param image: image to annotated, in the form of a nxm np array
+        :param folder: folder where the annotaed image should be stored
+        :param new_image_name: the name of the new image
+        :param hip_info: object of type HipInformation, with values for keypoint positions and angles set
+        :return: None
+        '''
         width, height = image.shape[1], image.shape[0]
 
         scaled_hip_info = copy(hip_info)
@@ -19,17 +27,17 @@ class ImageAnnotator:
 
         fig, axis = plt.subplots()
         plt.imshow(image)
-        ImageAnnotator.plot_line_between_two_points(scaled_hip_info.left_acetabular,
-                                                    scaled_hip_info.left_femoral)
-        ImageAnnotator.plot_line_between_two_points(scaled_hip_info.left_femoral,
-                                                    scaled_hip_info.right_femoral)
-        ImageAnnotator.plot_line_between_two_points(scaled_hip_info.right_femoral,
-                                                    scaled_hip_info.right_acetabular)
+        ImageAnnotator.__plot_line_between_two_points(scaled_hip_info.left_acetabular,
+                                                      scaled_hip_info.left_femoral)
+        ImageAnnotator.__plot_line_between_two_points(scaled_hip_info.left_femoral,
+                                                      scaled_hip_info.right_femoral)
+        ImageAnnotator.__plot_line_between_two_points(scaled_hip_info.right_femoral,
+                                                      scaled_hip_info.right_acetabular)
 
-        ImageAnnotator.plot_arc_for_angle(axis, scaled_hip_info.left_hip_angle, scaled_hip_info.left_acetabular,
-                                          scaled_hip_info.left_femoral, scaled_hip_info.right_femoral)
-        ImageAnnotator.plot_arc_for_angle(axis, scaled_hip_info.right_hip_angle, scaled_hip_info.left_femoral,
-                                          scaled_hip_info.right_femoral, scaled_hip_info.right_acetabular)
+        ImageAnnotator.__plot_arc_for_angle(axis, scaled_hip_info.left_hip_angle, scaled_hip_info.left_acetabular,
+                                            scaled_hip_info.left_femoral, scaled_hip_info.right_femoral)
+        ImageAnnotator.__plot_arc_for_angle(axis, scaled_hip_info.right_hip_angle, scaled_hip_info.left_femoral,
+                                            scaled_hip_info.right_femoral, scaled_hip_info.right_acetabular)
 
         plt.axis("off")
         plt.savefig(folder + new_image_name, bbox_inches='tight', pad_inches=0)
@@ -37,12 +45,12 @@ class ImageAnnotator:
         plt.show()
 
     @staticmethod
-    def plot_arc_for_angle(axis, angle, point1, point2, point3):
+    def __plot_arc_for_angle(axis, angle, point1, point2, point3):
         AngleAnnotation(point2, (point3[0], point3[1]),
                         (point1[0], point1[1]), ax=axis, size=20, text=str(angle),
                         textposition="inside",
                         text_kw=dict(fontsize=3, color="blue"))
 
     @staticmethod
-    def plot_line_between_two_points(point1, point2):
+    def __plot_line_between_two_points(point1, point2):
         plt.plot([point1[0], point2[0]], [point1[1], point2[1]], 'r-', linewidth=0.6)

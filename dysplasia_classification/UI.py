@@ -10,18 +10,14 @@ from dysplasia_classification.app import app
 from flask import flash, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 
-# from MLPart import load_own_model, save_image_and_retrieve_angles
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-my_model = True
-# load_own_model("higherResolutionLatest")
+processor = HipProcessor(None)
 
-predictor = KeypointPredictor()
-processor = HipProcessor(predictor)
 
 def get_chosen_models():
     return request.form.getlist('Model')
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -42,16 +38,20 @@ def upload_image():
         flash('No image selected for uploading')
         return redirect(request.url)
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        img = cv2.imread(file_path)
-        
-        hip_infos = processor.process_radiographs(img, get_chosen_models(), filename)
-        return render_template('upload.html', hip_infos=hip_infos)
+        return return_hip_information_and_annotated_radiographs(file)
     else:
         flash('Allowed image types are -> png, jpg, jpeg')
         return redirect(request.url)
+
+
+def return_hip_information_and_annotated_radiographs(file):
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(file_path)
+    img = cv2.imread(file_path)
+    hip_infos = processor.process_radiograph(img, get_chosen_models(), filename)
+    return render_template('upload.html', hip_infos=hip_infos)
+
 
 @app.route('/about')
 def about():
@@ -64,4 +64,6 @@ def display_prediction_image(file_name):
 
 
 if __name__ == "__main__":
+    predictor = KeypointPredictor()
+    processor.keypoint_predictor = predictor
     app.run(debug=True, host='0.0.0.0')

@@ -9,7 +9,16 @@ class HipProcessor:
     def __init__(self, keypoint_predictor):
         self.keypoint_predictor = keypoint_predictor
 
-    def process_radiographs(self, img, models, original_file_name):
+    def process_radiograph(self, img, models, original_file_name):
+        '''
+        Processes a radiograph, according to the models selected, obtaining keypoint, angle and classification data.
+        Saves the annotated radiograph.
+        :param img: Radiograph to process, as a numpy array
+        :param models: Models to be used in predicting the radiograph, represented as array of strings
+        :param original_file_name: Radiograph name, to be used when saving its annotated version
+        :return: An array containing objects of type HipInformation, representing radiographs for which predictions have
+         been made, all values having been set
+        '''
         hip_infos = []
         for model in models:
             hip_info = self.keypoint_predictor.predict_keypoints(img, model)
